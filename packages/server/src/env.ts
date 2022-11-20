@@ -5,14 +5,16 @@ import * as tt from "io-ts-types";
 
 dotenv.config();
 
-type Config = t.TypeOf<typeof Config>;
+type ConfigC = t.TypeOf<typeof Config>
 const Config = t.partial({
   PORT: tt.IntFromString,
 });
 
-const DEFAULT_CONFIGS: Partial<Config> = {
+const DEFAULT_CONFIGS = {
   PORT: decode(tt.IntFromString, "8000"),
-};
+} satisfies Partial<ConfigC>;
+
+type Config = ConfigC & typeof DEFAULT_CONFIGS;
 
 const processEnv = decode(Config, process.env);
 
