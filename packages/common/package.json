@@ -1,0 +1,22 @@
+{
+  "name": "typed-project-common",
+  "version": "1.0.0",
+  "license": "ISC",
+  "private": true,
+  "files": [
+    "dist"
+  ],
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "start": "tsc --watch"
+  },
+  "dependencies": {
+    "io-ts": "*"
+  },
+  "devDependencies": {
+    "typescript": "*",
+    "prettier": "*",
+    "eslint":"*"
+  }
+}

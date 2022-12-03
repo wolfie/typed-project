@@ -1,7 +1,7 @@
 import type * as t from "io-ts";
 
-class IotsError extends Error {
-  name = "TypeError";
+class IoTsError extends Error {
+  name = "IoTsError";
   constructor(public readonly errors: t.Errors) {
     super(JSON.stringify(errors.map(getReadableError)));
   }
@@ -26,4 +26,4 @@ export const getReadableError = (error: t.ValidationError) => {
   return actualValueIsUndefined ? { actualValueIsUndefined, ...base } : { actualValue, ...base };
 };
 
-export default IotsError;
+export default IoTsError;

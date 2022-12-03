@@ -5,15 +5,20 @@
   "dependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-scripts": "5.0.1"
+    "react-router-dom": "^6.4.3",
+    "react-scripts": "5.0.1",
+    "io-ts": "*",
+    "io-ts-types": "*",
+    "typed-project-common": "*"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",
     "@types/node": "^16.7.13",
     "@types/react": "^18.0.0",
-    "typescript": "*",
     "@types/react-dom": "^18.0.0",
-    "prettier": "*"
+    "prettier": "*",
+    "typescript": "*",
+    "dotenv": "*"
   },
   "scripts": {
     "start": "react-scripts start",

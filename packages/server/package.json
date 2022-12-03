@@ -10,22 +10,22 @@
   "dependencies": {
     "axios": "^1.1.3",
     "chalk": "^4",
-    "dotenv": "^16.0.3",
+    "cors": "^2.8.5",
+    "dotenv": "*",
     "express": "^4.18.2",
-    "fp-ts": "^2.5.0",
-    "io-ts": "^2.2.19",
-    "io-ts-types": "^0.5.19",
-    "monocle-ts": "^2.0.0",
-    "newtype-ts": "^0.3.2",
+    "io-ts": "*",
     "sqlite": "^4.1.2",
     "sqlite3": "^5.1.2",
+    "typed-project-common": "*",
     "typera-express": "^2.4.4"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.12",
     "@types/express": "^4.17.14",
     "@types/node": "^18.11.9",
+    "prettier": "*",
+    "eslint": "*",
     "ts-node-dev": "^2.0.0",
-    "typescript": "*",
-    "prettier": "*"
+    "typescript": "*"
   }
 }

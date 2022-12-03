@@ -1,9 +1,9 @@
-import { route, router, Route, Response, Parser, RequestHandler } from "typera-express";
-import db, { getAllTodos, Todo, updateTodoBody } from "../db";
+import { route, router, Route, Response, Parser } from "typera-express";
+import db, { getAllTodos, getTodo, Todo, updateTodoBody } from "../db";
 import logger from "../logger";
 import SecureError from "../SecureError";
 import * as t from "io-ts";
-import { getReadableError } from "../IotsError";
+import { IotsError } from "typed-project-common";
 
 const log = logger("todo route");
 
@@ -13,20 +13,41 @@ const bodyParser = <T extends t.Any>(type: T) =>
   Parser.bodyP(type, e =>
     Response.badRequest({
       message: "Bad request",
-      error: e.map(getReadableError),
+      error: e.map(IotsError.getReadableError),
     })
   );
 
-const getAllTodosRoute: Route<Response.Ok<Todo[]> | CaughtInternalServerError> = route.get("/").handler(async () => {
-  try {
-    return Response.ok<Todo[]>(await db.then(db => getAllTodos(db)));
-  } catch (e) {
-    log(e);
-    return Response.internalServerError({
-      message: `Internal Server Error${e instanceof SecureError ? `: ${e.publicError}` : ""}`,
-    });
-  }
-});
+// this is needed, since just returning `undefined` will cause problems with encoders/decoders
+type Data<T> = { data: T };
+const ResponseOkData = <T>(data: T) => Response.ok({ data });
+
+const getAllTodosRoute: Route<Response.Ok<Data<Todo[]>> | CaughtInternalServerError> = route
+  .get("/")
+  .handler(async () => {
+    try {
+      const todos = await db.then(db => getAllTodos(db));
+      return ResponseOkData(todos);
+    } catch (e) {
+      log(e);
+      return Response.internalServerError({
+        message: `Internal Server Error${e instanceof SecureError ? `: ${e.publicError}` : ""}`,
+      });
+    }
+  });
+
+const getTodoRoute: Route<Response.Ok<Data<Todo | undefined>> | CaughtInternalServerError> = route
+  .get("/:id(int)")
+  .handler(async ctx => {
+    try {
+      const todo = await db.then(db => getTodo(db, ctx.routeParams.id));
+      return ResponseOkData(todo);
+    } catch (e) {
+      log(e);
+      return Response.internalServerError({
+        message: `Internal Server Error${e instanceof SecureError ? `: ${e.publicError}` : ""}`,
+      });
+    }
+  });
 
 const patchTodoRoute: Route<
   Response.Ok<void> | Response.BadRequest<{ message: string; error: any[] }> | CaughtInternalServerError
@@ -45,4 +66,4 @@ const patchTodoRoute: Route<
     }
   });
 
-export default router(getAllTodosRoute, patchTodoRoute).handler();
+export default router(getAllTodosRoute, getTodoRoute, patchTodoRoute).handler();

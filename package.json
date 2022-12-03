@@ -3,7 +3,8 @@
   "license": "ISC",
   "private": true,
   "scripts": {
-    "start": "concurrently -c green,blue -n package: yarn:start:*",
+    "start": "concurrently -c grey,green,blue -n package: yarn:start:*",
+    "start:common": "yarn workspace typed-project-common start",
     "start:client": "yarn workspace typed-project-client start",
     "start:server": "yarn workspace typed-project-server start",
     "lint": "yarn workspaces run lint"
@@ -11,9 +12,18 @@
   "workspaces": [
     "packages/*"
   ],
+  "dependencies": {
+    "dotenv": "^16.0.3",
+    "fp-ts": "^2.5.0",
+    "io-ts": "^2.2.19",
+    "io-ts-types": "^0.5.19",
+    "monocle-ts": "^2.0.0",
+    "newtype-ts": "^0.3.2"
+  },
   "devDependencies": {
+    "eslint-plugin-prettier": "^4.2.1",
     "concurrently": "^7.5.0",
-    "prettier": "^3.0.0-alpha.4",
-    "typescript": "^4.4.2"
+    "prettier": "^2.8.0",
+    "typescript": "^4.9.3"
   }
 }
