@@ -3,11 +3,10 @@ import * as t from "io-ts";
 import { ioTsUtils } from "typed-project-common";
 
 type UseFetch<DATA> = { state: "loading" } | { state: "done"; data: DATA } | { state: "error" };
-type FetchState = UseFetch<unknown>["state"];
 
 const useFetch = <T extends t.Any>(url: string, ResponseType: T): UseFetch<t.TypeOf<T>> => {
   const [data, setData] = React.useState<t.TypeOf<T>>();
-  const [state, setState] = React.useState<FetchState>("loading");
+  const [state, setState] = React.useState<UseFetch<any>["state"]>("loading");
   const [error, setError] = React.useState<any>();
 
   React.useEffect(() => {
@@ -46,17 +45,19 @@ const useFetch = <T extends t.Any>(url: string, ResponseType: T): UseFetch<t.Typ
   return result;
 };
 
-type UseFetchLazy<ARGS extends any[]> =
+type UseFetchLazy<ARGS extends any[], T> =
   | { state: "loading" }
   | { exec: (...args: ARGS) => void; state: "init" }
-  | { exec: (...args: ARGS) => void; state: "done" }
-  | { exec: (...args: ARGS) => void; state: "error" };
-export const useFetchLazy = <ARGS extends any[] = []>(
+  | { exec: (...args: ARGS) => void; state: "error" }
+  | { exec: (...args: ARGS) => void; state: "done"; data: T };
+export const useFetchLazy = <ARGS extends any[] = [], T extends t.Any = t.UnknownType>(
   url: string,
   initOptions?: Omit<RequestInit, "signal">,
-  fetchConfigs?: (...args: ARGS) => Omit<RequestInit, "signal">
+  fetchConfigs?: (...args: ARGS) => Omit<RequestInit, "signal">,
+  ResponseType?: T
 ) => {
-  const [state, setState] = React.useState<FetchState>("loading");
+  const [data, setData] = React.useState<t.TypeOf<T>>();
+  const [state, setState] = React.useState<UseFetchLazy<any, any>["state"]>("init");
   const [error, setError] = React.useState<any>();
   const controllerRef = React.useRef<AbortController>();
 
@@ -64,20 +65,33 @@ export const useFetchLazy = <ARGS extends any[] = []>(
     (...args: ARGS) => {
       controllerRef.current?.abort();
       const controller = (controllerRef.current = new AbortController());
-      const initOptions = fetchConfigs?.(...args);
+      const execOptions = fetchConfigs?.(...args);
+
+      const fetchOptions: RequestInit = {
+        headers: {
+          "Content-Type": "application/json; charset=utf-8",
+          ...initOptions?.headers,
+          ...execOptions?.headers,
+        },
+        ...initOptions,
+        ...execOptions,
+        signal: controller.signal,
+      };
+
       globalThis
-        .fetch(url, {
-          headers: { "Content-Type": "application/json; charset=utf-8", ...initOptions?.headers },
-          ...initOptions,
-          signal: controller.signal,
-        })
+        .fetch(url, fetchOptions)
         .then(async res => {
           if (res.status !== 200) {
             const errorText = await res.text();
             console.error(errorText);
             setState("error");
           } else {
-            setState("done");
+            return res
+              .json()
+              .then(res => res.data)
+              .then(ioTsUtils.decode(ResponseType ?? t.unknown))
+              .then(setData)
+              .then(() => setState("done"));
           }
         })
         .catch(e => {
@@ -91,8 +105,15 @@ export const useFetchLazy = <ARGS extends any[] = []>(
     [url, JSON.stringify(initOptions)]
   );
 
-  return React.useMemo<UseFetchLazy<ARGS>>(
-    () => (state === "loading" ? { state } : state === "error" ? { state, error, exec } : { state, exec }),
+  return React.useMemo<UseFetchLazy<ARGS, t.TypeOf<T>>>(
+    () =>
+      state === "loading"
+        ? { state }
+        : state === "error"
+        ? { state, error, exec }
+        : state === "done"
+        ? { state, exec, data }
+        : { state, exec },
     [state, exec]
   );
 };

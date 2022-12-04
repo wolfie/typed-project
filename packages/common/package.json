@@ -9,7 +9,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "start": "tsc --watch"
+    "start": "tsc --watch --preserveWatchOutput"
   },
   "dependencies": {
     "io-ts": "*"
@@ -17,6 +17,6 @@
   "devDependencies": {
     "typescript": "*",
     "prettier": "*",
-    "eslint":"*"
+    "eslint": "*"
   }
 }

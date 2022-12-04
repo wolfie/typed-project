@@ -4,6 +4,8 @@ import type { ISqlite } from "sqlite/build/interfaces";
 import os from "os";
 import path from "path";
 import * as t from "io-ts";
+import * as tt from "io-ts-types";
+import * as fs from "fs";
 
 import logger from "./logger";
 import SecureError from "./SecureError";
@@ -12,11 +14,28 @@ import { ioTsUtils } from "typed-project-common";
 const log = logger("db");
 
 const TODOS_TABLE = "todos";
-const INIT = `CREATE TABLE IF NOT EXISTS ${TODOS_TABLE} (
+const USERS_TABLE = "users";
+const USER_ID = "16b2f933-be81-488e-8b5e-305443f0e935";
+
+const INIT = [
+  `
+CREATE TABLE IF NOT EXISTS ${USERS_TABLE} (
+  id TEXT NOT NULL,
+  username TEXT NOT NULL,
+  password TEXT NOT NULL
+);`,
+  `INSERT INTO ${USERS_TABLE} (id, username, password) VALUES ("${USER_ID}", "user", "user");`,
+  `
+CREATE TABLE IF NOT EXISTS ${TODOS_TABLE} (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  author TEXT NOT NULL,
-  body TEXT NOT NULL
-);`;
+  author_id TEXT NOT NULL,
+  body TEXT NOT NULL,
+  done BOOLEAN NOT NULL DEFAULT 0 CHECK (done IN (0, 1)),
+  FOREIGN KEY(author_id) REFERENCES ${USERS_TABLE}(id)
+);`,
+  `INSERT INTO ${TODOS_TABLE} (author_id, body, done) VALUES ("${USER_ID}", "Test todo 1", 0);`,
+  `INSERT INTO ${TODOS_TABLE} (author_id, body, done) VALUES ("${USER_ID}", "Test todo 2", 0);`,
+];
 
 type CountOfTable = t.TypeOf<typeof CountOfTable>;
 const CountOfTable = t.type({ count: t.number });
@@ -28,23 +47,40 @@ const expectOneRowChanged = (result: ISqlite.RunResult) => {
     throw new SecureError(`Expected 1 row changed, but got ${result.changes}`, "Database error");
 };
 
-export type Todo = t.TypeOf<typeof Todo>;
-export const Todo = t.type({ id: t.number, body: t.string, author: t.string });
+export type TodoRead = t.TypeOf<typeof TodoRead>;
+export const TodoRead = t.type({
+  id: t.number,
+  username: t.string,
+  body: t.string,
+  done: tt.BooleanFromNumber,
+});
 
-export const insertIntoTodos = (db: sql.Database, { author, body }: Omit<Todo, "id">) =>
-  db.run(`INSERT INTO ${TODOS_TABLE} (author, body) VALUES (?, ?)`, author, body).then(expectOneRowChanged);
+export const updateTodo = async (db: sql.Database, id: number, updates: { body?: string; done?: boolean }) => {
+  const entries = Object.entries(updates).map(e => (e[0] === "done" ? ["done", e[1] ? 1 : 0] : e));
+  if (entries.length === 0) return;
 
-export const updateTodoBody = (db: sql.Database, { id, body }: Omit<Todo, "author">) =>
-  db.run(`UPDATE ${TODOS_TABLE} SET body = ? WHERE id = ?`, body, id).then(expectOneRowChanged);
+  db.run(`UPDATE ${TODOS_TABLE} SET ${entries.map(e => `${e[0]} = ?`)} WHERE id = ?`, [...entries.map(e => e[1]), id]);
+};
 
-export const getAllTodos = (db: sql.Database): Promise<Todo[]> =>
-  db.all(`SELECT * FROM ${TODOS_TABLE}`).then(ioTsUtils.decode(t.array(Todo)));
+export const getAllTodos = (db: sql.Database): Promise<TodoRead[]> =>
+  db
+    .all(`SELECT todos.id, username, body, done FROM todos LEFT JOIN users ON todos.author_id = users.id`)
+    .then(ioTsUtils.decode(t.array(TodoRead)));
 
-export const getTodo = (db: sql.Database, id: number): Promise<Todo | undefined> =>
-  db.get(`SELECT * FROM ${TODOS_TABLE} WHERE id = ?`, id).then(ioTsUtils.decodeIfNotUndefined(Todo));
+export const getTodo = (db: sql.Database, id: number): Promise<TodoRead | undefined> =>
+  db
+    .get(
+      `SELECT todos.id, username, body, done FROM todos LEFT JOIN users ON todos.author_id = users.id WHERE todos.id = ?`,
+      id
+    )
+    .then(ioTsUtils.decodeIfNotUndefined(TodoRead));
+
+export const insertIntoUsers = (db: sql.Database, {}) => {};
 
 const SQLITE_FILE_PATH = path.resolve(os.tmpdir(), "typed-project.sqlite");
 log(`Using ${SQLITE_FILE_PATH} for sqlite database`);
+
+const fileExistsAlready = fs.existsSync(SQLITE_FILE_PATH);
 
 const db = sql
   .open({
@@ -52,16 +88,14 @@ const db = sql
     filename: SQLITE_FILE_PATH,
   })
   .then(async db => {
-    log("doing init things for database");
-    await db.exec(INIT);
-
-    const { count } = await getCountOfTable(db, TODOS_TABLE);
-    if (count === 0) {
-      log("Database was empty, adding test data");
-      await insertIntoTodos(db, { author: "Henrik", body: "Test body 1" });
-      await insertIntoTodos(db, { author: "Henrik", body: "Test body 2" });
+    if (!fileExistsAlready) {
+      log("Initializing database");
+      for (const sql of INIT) {
+        log(sql);
+        await db.exec(sql);
+      }
     } else {
-      log("Found existing data in database");
+      log("Skipping initialization, database exists already");
     }
 
     return db;

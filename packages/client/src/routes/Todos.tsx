@@ -9,19 +9,25 @@ const Index: React.FC = () => {
     return <div>Something weird happened</div>;
   }
 
-  return todosState.state === "loading" ? (
-    <div>Loading...</div>
-  ) : (
-    <section>
-      <div>Index</div>
-      <ul>
-        {todosState.data.map(todo => (
-          <li key={todo.id}>
-            <Link to={`/${todo.id}/`}>Todo {todo.id}</Link>
-          </li>
-        ))}
-      </ul>
-    </section>
+  return (
+    <>
+      <img src={`${process.env.PUBLIC_URL}/logo.png`} alt="logo" />
+
+      {todosState.state === "loading" ? (
+        <div>Loading...</div>
+      ) : (
+        <section>
+          <div>Index</div>
+          <ul>
+            {todosState.data.map(todo => (
+              <li key={todo.id}>
+                <Link to={`/${todo.id}/`}>Todo {todo.id}</Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+    </>
   );
 };
 
