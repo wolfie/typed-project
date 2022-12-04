@@ -25,31 +25,20 @@ const bodyParser = <T extends t.Any>(
 type Data<T> = { data: T };
 const ResponseOkData = <T>(data: T) => Response.ok({ data });
 
+const ResponseInternalServerError = (e: unknown) => {
+  log(e);
+  return Response.internalServerError({
+    message: `Internal Server Error${e instanceof SecureError ? `: ${e.publicError}` : ""}`,
+  });
+};
+
 const getAllTodosRoute: Route<Response.Ok<Data<TodoRead[]>> | CaughtInternalServerError> = route
   .get("/")
-  .handler(async () => {
-    try {
-      return ResponseOkData(await db.then(db => getAllTodos(db)));
-    } catch (e) {
-      log(e);
-      return Response.internalServerError({
-        message: `Internal Server Error${e instanceof SecureError ? `: ${e.publicError}` : ""}`,
-      });
-    }
-  });
+  .handler(() => db.then(getAllTodos()).then(ResponseOkData).catch(ResponseInternalServerError));
 
 const getTodoRoute: Route<Response.Ok<Data<TodoRead | undefined>> | CaughtInternalServerError> = route
   .get("/:id(int)")
-  .handler(async ctx => {
-    try {
-      return ResponseOkData(await db.then(db => getTodo(db, ctx.routeParams.id)));
-    } catch (e) {
-      log(e);
-      return Response.internalServerError({
-        message: `Internal Server Error${e instanceof SecureError ? `: ${e.publicError}` : ""}`,
-      });
-    }
-  });
+  .handler(ctx => db.then(getTodo(ctx.routeParams.id)).then(ResponseOkData).catch(ResponseInternalServerError));
 
 const patchTodoRoute: Route<
   | Response.Ok<Data<TodoRead | undefined>>
@@ -61,8 +50,8 @@ const patchTodoRoute: Route<
   .handler(async ctx => {
     try {
       const { id } = ctx.routeParams;
-      await db.then(db => updateTodo(db, id, ctx.body));
-      return ResponseOkData(await db.then(db => getTodo(db, id)));
+      await db.then(updateTodo(id, ctx.body));
+      return ResponseOkData(await db.then(getTodo(id)));
     } catch (e) {
       log(e);
       return Response.internalServerError({

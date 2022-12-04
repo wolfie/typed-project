@@ -55,27 +55,32 @@ export const TodoRead = t.type({
   done: tt.BooleanFromNumber,
 });
 
-export const updateTodo = async (db: sql.Database, id: number, updates: { body?: string; done?: boolean }) => {
+export const updateTodo = (id: number, updates: { body?: string; done?: boolean }) => async (db: sql.Database) => {
   const entries = Object.entries(updates).map(e => (e[0] === "done" ? ["done", e[1] ? 1 : 0] : e));
   if (entries.length === 0) return;
 
-  db.run(`UPDATE ${TODOS_TABLE} SET ${entries.map(e => `${e[0]} = ?`)} WHERE id = ?`, [...entries.map(e => e[1]), id]);
+  await db.run(`UPDATE ${TODOS_TABLE} SET ${entries.map(e => `${e[0]} = ?`)} WHERE id = ?`, [
+    ...entries.map(e => e[1]),
+    id,
+  ]);
 };
 
-export const getAllTodos = (db: sql.Database): Promise<TodoRead[]> =>
-  db
-    .all(`SELECT todos.id, username, body, done FROM todos LEFT JOIN users ON todos.author_id = users.id`)
-    .then(ioTsUtils.decode(t.array(TodoRead)));
+export const getAllTodos =
+  () =>
+  (db: sql.Database): Promise<TodoRead[]> =>
+    db
+      .all(`SELECT todos.id, username, body, done FROM todos LEFT JOIN users ON todos.author_id = users.id`)
+      .then(ioTsUtils.decode(t.array(TodoRead)));
 
-export const getTodo = (db: sql.Database, id: number): Promise<TodoRead | undefined> =>
-  db
-    .get(
-      `SELECT todos.id, username, body, done FROM todos LEFT JOIN users ON todos.author_id = users.id WHERE todos.id = ?`,
-      id
-    )
-    .then(ioTsUtils.decodeIfNotUndefined(TodoRead));
-
-export const insertIntoUsers = (db: sql.Database, {}) => {};
+export const getTodo =
+  (id: number) =>
+  (db: sql.Database): Promise<TodoRead | undefined> =>
+    db
+      .get(
+        `SELECT todos.id, username, body, done FROM todos LEFT JOIN users ON todos.author_id = users.id WHERE todos.id = ?`,
+        id
+      )
+      .then(ioTsUtils.decodeIfNotUndefined(TodoRead));
 
 const SQLITE_FILE_PATH = path.resolve(os.tmpdir(), "typed-project.sqlite");
 log(`Using ${SQLITE_FILE_PATH} for sqlite database`);
