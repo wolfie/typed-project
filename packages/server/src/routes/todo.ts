@@ -11,9 +11,8 @@ const log = logger("todo route");
 
 type CaughtInternalServerError = Response.InternalServerError<{ message: string }>;
 
-const bodyParser = <T extends t.Any>(
-  type: T
-): Middleware<{ body: t.TypeOf<T> }, BadRequest<{ message: string; error: any }>> =>
+type BadRequestBodyError = BadRequest<{ message: string; error: any }>;
+const bodyParser = <T extends t.Any>(type: T): Middleware<{ body: t.TypeOf<T> }, BadRequestBodyError> =>
   Parser.bodyP(type, e =>
     Response.badRequest({
       message: "Bad request",
@@ -40,24 +39,21 @@ const getTodoRoute: Route<Response.Ok<Data<TodoRead | undefined>> | CaughtIntern
   .get("/:id(int)")
   .handler(ctx => db.then(getTodo(ctx.routeParams.id)).then(ResponseOkData).catch(ResponseInternalServerError));
 
-const patchTodoRoute: Route<
-  | Response.Ok<Data<TodoRead | undefined>>
-  | Response.BadRequest<{ message: string; error: any[] }>
-  | CaughtInternalServerError
-> = route
-  .patch("/:id(int)")
-  .use(bodyParser(t.partial({ body: t.string, done: t.boolean })))
-  .handler(async ctx => {
-    try {
-      const { id } = ctx.routeParams;
-      await db.then(updateTodo(id, ctx.body));
-      return ResponseOkData(await db.then(getTodo(id)));
-    } catch (e) {
-      log(e);
-      return Response.internalServerError({
-        message: `Internal Server Error${e instanceof SecureError ? `: ${e.publicError}` : ""}`,
-      });
-    }
-  });
+const patchTodoRoute: Route<Response.Ok<Data<TodoRead | undefined>> | BadRequestBodyError | CaughtInternalServerError> =
+  route
+    .patch("/:id(int)")
+    .use(bodyParser(t.partial({ body: t.string, done: t.boolean })))
+    .handler(async ctx => {
+      try {
+        const { id } = ctx.routeParams;
+        await db.then(updateTodo(id, ctx.body));
+        return ResponseOkData(await db.then(getTodo(id)));
+      } catch (e) {
+        log(e);
+        return Response.internalServerError({
+          message: `Internal Server Error${e instanceof SecureError ? `: ${e.publicError}` : ""}`,
+        });
+      }
+    });
 
 export default router(getAllTodosRoute, getTodoRoute, patchTodoRoute).handler();
