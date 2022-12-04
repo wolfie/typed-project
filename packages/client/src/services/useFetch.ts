@@ -46,4 +46,55 @@ const useFetch = <T extends t.Any>(url: string, ResponseType: T): UseFetch<t.Typ
   return result;
 };
 
+type UseFetchLazy<ARGS extends any[]> =
+  | { state: "loading" }
+  | { exec: (...args: ARGS) => void; state: "init" }
+  | { exec: (...args: ARGS) => void; state: "done" }
+  | { exec: (...args: ARGS) => void; state: "error" };
+export const useFetchLazy = <ARGS extends any[] = []>(
+  url: string,
+  initOptions?: Omit<RequestInit, "signal">,
+  fetchConfigs?: (...args: ARGS) => Omit<RequestInit, "signal">
+) => {
+  const [state, setState] = React.useState<FetchState>("loading");
+  const [error, setError] = React.useState<any>();
+  const controllerRef = React.useRef<AbortController>();
+
+  const exec = React.useCallback(
+    (...args: ARGS) => {
+      controllerRef.current?.abort();
+      const controller = (controllerRef.current = new AbortController());
+      const initOptions = fetchConfigs?.(...args);
+      globalThis
+        .fetch(url, {
+          headers: { "Content-Type": "application/json; charset=utf-8", ...initOptions?.headers },
+          ...initOptions,
+          signal: controller.signal,
+        })
+        .then(async res => {
+          if (res.status !== 200) {
+            const errorText = await res.text();
+            console.error(errorText);
+            setState("error");
+          } else {
+            setState("done");
+          }
+        })
+        .catch(e => {
+          if (controller.signal.aborted) return;
+
+          console.error(e);
+          setState("error");
+          setError(e);
+        });
+    },
+    [url, JSON.stringify(initOptions)]
+  );
+
+  return React.useMemo<UseFetchLazy<ARGS>>(
+    () => (state === "loading" ? { state } : state === "error" ? { state, error, exec } : { state, exec }),
+    [state, exec]
+  );
+};
+
 export default useFetch;
