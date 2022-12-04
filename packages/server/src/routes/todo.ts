@@ -49,10 +49,7 @@ const patchTodoRoute: Route<DataOk<TodoRead | undefined> | BadRequestBodyError |
       await db.then(updateTodo(id, ctx.body));
       return ResponseOkData(await db.then(getTodo(id)));
     } catch (e) {
-      log(e);
-      return Response.internalServerError({
-        message: `Internal Server Error${e instanceof SecureError ? `: ${e.publicError}` : ""}`,
-      });
+      return ResponseInternalServerError(e);
     }
   });
 
