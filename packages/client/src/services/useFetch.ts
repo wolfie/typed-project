@@ -78,6 +78,7 @@ export const useFetchLazy = <ARGS extends any[] = [], T extends t.Any = t.Unknow
         signal: controller.signal,
       };
 
+      setState("loading");
       globalThis
         .fetch(url, fetchOptions)
         .then(async res => {
