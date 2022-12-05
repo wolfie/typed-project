@@ -3,7 +3,7 @@ import { Link, useParams, useSearchParams } from "react-router-dom";
 import * as t from "io-ts";
 import * as tt from "io-ts-types";
 import { ioTsUtils } from "typed-project-common";
-import { Todo as TodoType, useTodo, useTodoEdit } from "../services/todo";
+import { Todo as TodoType, useTodo, useTodoEditWithId } from "../services/todo";
 
 const ReadTodoBody: React.FC<{ todo: TodoType; onEdit: () => void }> = ({ todo, onEdit }) => (
   <>
@@ -48,12 +48,13 @@ const EditTodoBody: React.FC<{
 
 const Todo: React.FC<{ todoId: number }> = ({ todoId: id }) => {
   const todoState = useTodo(id);
-  const todoEditState = useTodoEdit(id);
+  const todoEditState = useTodoEditWithId(id);
   const [params, setParams] = useSearchParams();
   const editing = params.get("edit") !== null;
 
   React.useEffect(() => {
     if (todoEditState.state !== "done") return;
+    todoState.state === "done" && todoState.override(todoEditState.data);
     setParams(undefined, { preventScrollReset: true });
   }, [setParams, todoEditState.state]);
 
@@ -61,27 +62,24 @@ const Todo: React.FC<{ todoId: number }> = ({ todoId: id }) => {
     return <div>Something weird happened</div>;
   }
 
-  const effectiveTodo =
-    todoEditState.state === "done" ? todoEditState.data : todoState.state === "done" ? todoState.data : undefined;
-
   return (
     <section>
       <Link to="/">Root</Link>
       <div>Todo {id}</div>
       {todoState.state === "loading" ? (
         <div>Loading</div>
-      ) : !effectiveTodo ? (
+      ) : !todoState.data ? (
         <div>Not found</div>
       ) : editing ? (
         <EditTodoBody
-          todo={effectiveTodo}
+          todo={todoState.data}
           onSave={(todo: { body: string; done: boolean }) =>
             todoEditState.state !== "loading" && todoEditState.exec(todo)
           }
           onCancel={() => setParams(undefined, { preventScrollReset: true })}
         />
       ) : (
-        <ReadTodoBody todo={effectiveTodo} onEdit={() => setParams({ edit: "" }, { preventScrollReset: true })} />
+        <ReadTodoBody todo={todoState.data} onEdit={() => setParams({ edit: "" }, { preventScrollReset: true })} />
       )}
     </section>
   );

@@ -2,7 +2,11 @@ import * as React from "react";
 import * as t from "io-ts";
 import { ioTsUtils } from "typed-project-common";
 
-type UseFetch<DATA> = { state: "loading" } | { state: "done"; data: DATA } | { state: "error" };
+type Override<T> = T | ((old: T) => T);
+type UseFetch<DATA> =
+  | { state: "loading" }
+  | { state: "done"; data: DATA; override: (arg: Override<DATA>) => void }
+  | { state: "error" };
 
 const useFetch = <T extends t.Any>(url: string, ResponseType: T): UseFetch<t.TypeOf<T>> => {
   const [data, setData] = React.useState<t.TypeOf<T>>();
@@ -38,8 +42,8 @@ const useFetch = <T extends t.Any>(url: string, ResponseType: T): UseFetch<t.Typ
   }, [url, ResponseType.name]);
 
   const result = React.useMemo<UseFetch<t.TypeOf<T>>>(
-    () => (state === "done" ? { state, data } : state === "error" ? { state, error } : { state }),
-    [state]
+    () => (state === "done" ? { state, data, override: setData } : state === "error" ? { state, error } : { state }),
+    [state, data]
   );
 
   return result;
@@ -51,9 +55,8 @@ type UseFetchLazy<ARGS extends any[], T> =
   | { exec: (...args: ARGS) => void; state: "error" }
   | { exec: (...args: ARGS) => void; state: "done"; data: T };
 export const useFetchLazy = <ARGS extends any[] = [], T extends t.Any = t.UnknownType>(
-  url: string,
-  initOptions?: Omit<RequestInit, "signal">,
-  fetchConfigs?: (...args: ARGS) => Omit<RequestInit, "signal">,
+  initOptions?: Omit<RequestInit, "signal"> & { url?: string },
+  fetchConfigs?: (...args: ARGS) => Omit<RequestInit, "signal"> & { url?: string },
   ResponseType?: T
 ) => {
   const [data, setData] = React.useState<t.TypeOf<T>>();
@@ -66,6 +69,9 @@ export const useFetchLazy = <ARGS extends any[] = [], T extends t.Any = t.Unknow
       controllerRef.current?.abort();
       const controller = (controllerRef.current = new AbortController());
       const execOptions = fetchConfigs?.(...args);
+      const url = execOptions?.url ?? initOptions?.url;
+
+      if (!url) throw new Error("No URL given");
 
       const fetchOptions: RequestInit = {
         headers: {
@@ -103,7 +109,7 @@ export const useFetchLazy = <ARGS extends any[] = [], T extends t.Any = t.Unknow
           setError(e);
         });
     },
-    [url, JSON.stringify(initOptions)]
+    [JSON.stringify(initOptions)]
   );
 
   return React.useMemo<UseFetchLazy<ARGS, t.TypeOf<T>>>(
