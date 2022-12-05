@@ -55,8 +55,8 @@ type UseFetchLazy<ARGS extends any[], T> =
   | { exec: (...args: ARGS) => void; state: "error" }
   | { exec: (...args: ARGS) => void; state: "done"; data: T };
 export const useFetchLazy = <ARGS extends any[] = [], T extends t.Any = t.UnknownType>(
-  initOptions?: Omit<RequestInit, "signal"> & { url?: string },
-  fetchConfigs?: (...args: ARGS) => Omit<RequestInit, "signal"> & { url?: string },
+  initOptions?: Omit<RequestInit, "signal" | "body"> & { url?: string; body?: any },
+  fetchConfigs?: (...args: ARGS) => Omit<RequestInit, "signal" | "body"> & { url?: string; body?: any },
   ResponseType?: T
 ) => {
   const [data, setData] = React.useState<t.TypeOf<T>>();
@@ -75,12 +75,13 @@ export const useFetchLazy = <ARGS extends any[] = [], T extends t.Any = t.Unknow
 
       const fetchOptions: RequestInit = {
         headers: {
-          "Content-Type": "application/json; charset=utf-8",
           ...initOptions?.headers,
           ...execOptions?.headers,
+          "Content-Type": "application/json; charset=utf-8",
         },
         ...initOptions,
         ...execOptions,
+        body: execOptions?.body ? JSON.stringify(execOptions.body) : undefined,
         signal: controller.signal,
       };
 

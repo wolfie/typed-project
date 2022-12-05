@@ -11,17 +11,14 @@ export const useTodo = (id: number) => useFetch(`${env.REACT_APP_TODO_SERVICE_UR
 export const useTodoEditWithId = (id: number) =>
   useFetchLazy(
     { method: "PATCH", url: `${env.REACT_APP_TODO_SERVICE_URL}/${id}` },
-    (body: { body?: string; done?: boolean }) => ({ body: JSON.stringify(body) }),
+    (body: { body?: string; done?: boolean }) => ({ body }),
     Possible(Todo)
   );
 
 export const useTodoEdit = () =>
   useFetchLazy(
     { method: "PATCH" },
-    (id: number, body: { body?: string; done?: boolean }) => ({
-      url: `${env.REACT_APP_TODO_SERVICE_URL}/${id}`,
-      body: JSON.stringify(body),
-    }),
+    (id: number, body: { body?: string; done?: boolean }) => ({ url: `${env.REACT_APP_TODO_SERVICE_URL}/${id}`, body }),
     Possible(Todo)
   );
 
