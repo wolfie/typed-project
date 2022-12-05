@@ -1,6 +1,6 @@
 import * as React from "react";
 import * as t from "io-ts";
-import { ioTsUtils } from "typed-project-common";
+import { DataWrappedResponse, ioTsUtils } from "typed-project-common";
 
 type Override<T> = T | ((old: T) => T);
 type UseFetch<DATA> =
@@ -24,9 +24,8 @@ const useFetch = <T extends t.Any>(url: string, ResponseType: T): UseFetch<t.Typ
         } else {
           return res
             .json()
-            .then(res => res.data)
-            .then(ioTsUtils.decode(ResponseType))
-            .then(setData)
+            .then(ioTsUtils.decode(DataWrappedResponse(ResponseType)))
+            .then(res => setData(res.data))
             .then(() => setState("done"));
         }
       })
@@ -94,12 +93,9 @@ export const useFetchLazy = <ARGS extends any[] = [], T extends t.Any = t.Unknow
             console.error(errorText);
             setState("error");
           } else {
-            return res
-              .json()
-              .then(res => res.data)
-              .then(ioTsUtils.decode(ResponseType ?? t.unknown))
-              .then(setData)
-              .then(() => setState("done"));
+            const json = await res.json();
+            if (ResponseType) setData(ioTsUtils.decode(DataWrappedResponse(ResponseType), json).data);
+            setState("done");
           }
         })
         .catch(e => {

@@ -3,11 +3,10 @@ import * as sql from "sqlite";
 import os from "os";
 import path from "path";
 import * as t from "io-ts";
-import * as tt from "io-ts-types";
 import * as fs from "fs";
 
 import logger from "./logger";
-import { ioTsUtils } from "typed-project-common";
+import { ioTsUtils, Todo } from "typed-project-common";
 
 const log = logger("db");
 
@@ -34,14 +33,6 @@ CREATE TABLE IF NOT EXISTS ${TODOS_TABLE} (
   `INSERT INTO ${TODOS_TABLE} (author_id, body, done) VALUES ("${USER_ID}", "Test todo 1", 0);`,
   `INSERT INTO ${TODOS_TABLE} (author_id, body, done) VALUES ("${USER_ID}", "Test todo 2", 0);`,
 ];
-
-export type TodoRead = t.TypeOf<typeof TodoRead>;
-export const TodoRead = t.type({
-  id: t.number,
-  username: t.string,
-  body: t.string,
-  done: tt.BooleanFromNumber,
-});
 
 const SQLITE_FILE_PATH = path.resolve(os.tmpdir(), "typed-project.sqlite");
 
@@ -77,12 +68,12 @@ class DB {
         `SELECT todos.id, username, body, done FROM todos LEFT JOIN users ON todos.author_id = users.id WHERE todos.id = ?`,
         id
       )
-      .then(ioTsUtils.decodeIfNotUndefined(TodoRead));
+      .then(ioTsUtils.decodeIfNotUndefined(Todo));
 
   getAllTodos = async () =>
     (await this.db)
       .all(`SELECT todos.id, username, body, done FROM todos LEFT JOIN users ON todos.author_id = users.id`)
-      .then(ioTsUtils.decode(t.array(TodoRead)));
+      .then(ioTsUtils.decode(t.array(Todo)));
 
   updateTodo = async (id: number, updates: { body?: string; done?: boolean }) => {
     const entries = Object.entries(updates).map(e => (e[0] === "done" ? ["done", e[1] ? 1 : 0] : e));

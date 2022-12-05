@@ -1,8 +1,8 @@
 import { route, router, Route, Response, Parser } from "typera-express";
-import db, { TodoRead } from "../db";
+import db from "../db";
 import logger from "../logger";
 import * as t from "io-ts";
-import { IotsError } from "typed-project-common";
+import { DataWrappedResponse, IotsError, Todo, TodoUpdate } from "typed-project-common";
 import { Middleware } from "typera-express/middleware";
 import { BadRequest } from "typera-express/response";
 
@@ -19,9 +19,7 @@ const bodyParser = <T extends t.Any>(type: T): Middleware<{ body: t.TypeOf<T> },
     })
   );
 
-// this is needed, since just returning `undefined` will cause problems with encoders/decoders
-type DataOk<T> = Response.Ok<Data<T>>;
-type Data<T> = { data: T };
+type DataOk<T> = Response.Ok<DataWrappedResponse<T>>;
 const ResponseOkData = <T>(data: T) => Response.ok({ data });
 
 const ResponseInternalServerError = (e: unknown) => {
@@ -29,17 +27,17 @@ const ResponseInternalServerError = (e: unknown) => {
   return Response.internalServerError({ message: "Internal Server Error" });
 };
 
-const getAllTodosRoute: Route<DataOk<TodoRead[]> | CaughtInternalServerError> = route
+const getAllTodosRoute: Route<DataOk<Todo[]> | CaughtInternalServerError> = route
   .get("/")
   .handler(() => db.getAllTodos().then(ResponseOkData).catch(ResponseInternalServerError));
 
-const getTodoRoute: Route<DataOk<TodoRead | undefined> | CaughtInternalServerError> = route
+const getTodoRoute: Route<DataOk<Todo | undefined> | CaughtInternalServerError> = route
   .get("/:id(int)")
   .handler(ctx => db.getTodo(ctx.routeParams.id).then(ResponseOkData).catch(ResponseInternalServerError));
 
-const patchTodoRoute: Route<DataOk<TodoRead | undefined> | BadRequestBodyError | CaughtInternalServerError> = route
+const patchTodoRoute: Route<DataOk<Todo | undefined> | BadRequestBodyError | CaughtInternalServerError> = route
   .patch("/:id(int)")
-  .use(bodyParser(t.partial({ body: t.string, done: t.boolean })))
+  .use(bodyParser(TodoUpdate))
   .handler(async ctx => {
     try {
       const { id } = ctx.routeParams;
