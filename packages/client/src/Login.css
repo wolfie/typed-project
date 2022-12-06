@@ -1,0 +1,11 @@
+.login-box {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.login-box.loading {
+  pointer-events: none;
+  opacity: 0.5;
+  cursor: wait;
+}

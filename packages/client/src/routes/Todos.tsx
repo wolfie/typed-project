@@ -17,41 +17,35 @@ const Index: React.FC = () => {
     return <div>Something weird happened</div>;
   }
 
-  return (
-    <>
-      <img src={`${process.env.PUBLIC_URL}/logo.png`} alt="logo" />
-
-      {todosState.state === "loading" ? (
-        <div>Loading...</div>
-      ) : (
-        <section>
-          <div>Index</div>
-          <ul>
-            {todosState.data.map(todo => (
-              <li key={todo.id}>
-                <input
-                  disabled={editTodoState.state === "loading"}
-                  type="checkbox"
-                  defaultChecked={todo.done}
-                  onChange={e =>
-                    editTodoState.state !== "loading" && editTodoState.exec(todo.id, { done: e.currentTarget.checked })
-                  }
-                />
-                <Link
-                  to={`/${todo.id}/`}
-                  style={{
-                    textDecoration: todo.done ? "line-through" : undefined,
-                    opacity: todo.done ? 0.5 : undefined,
-                  }}
-                >
-                  Todo {todo.id}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-    </>
+  return todosState.state === "loading" ? (
+    <div>Loading...</div>
+  ) : (
+    <section>
+      <div>Index</div>
+      <ul>
+        {todosState.data.map(todo => (
+          <li key={todo.id}>
+            <input
+              disabled={editTodoState.state === "loading"}
+              type="checkbox"
+              defaultChecked={todo.done}
+              onChange={e =>
+                editTodoState.state !== "loading" && editTodoState.exec(todo.id, { done: e.currentTarget.checked })
+              }
+            />
+            <Link
+              to={`/${todo.id}/`}
+              style={{
+                textDecoration: todo.done ? "line-through" : undefined,
+                opacity: todo.done ? 0.5 : undefined,
+              }}
+            >
+              Todo {todo.id}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 };
 

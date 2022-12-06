@@ -11,13 +11,21 @@ const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement)
 root.render(
   <React.StrictMode>
     <UserProvider>
-      <Login />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Todos />} />
-          <Route path="/:todoId/" element={<Todo />} />
-        </Routes>
-      </BrowserRouter>
+      <div className="main">
+        <div>
+          <Login />
+          <header>
+            <img src={`${process.env.PUBLIC_URL}/logo.png`} alt="logo" />
+            <h1>Typed Todo</h1>
+          </header>
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Todos />} />
+              <Route path="/:todoId/" element={<Todo />} />
+            </Routes>
+          </BrowserRouter>
+        </div>
+      </div>
     </UserProvider>
   </React.StrictMode>
 );

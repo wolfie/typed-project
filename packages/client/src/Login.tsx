@@ -1,5 +1,17 @@
 import * as React from "react";
 import useUser from "./useUser";
+import "./Login.css";
+
+const classes = (...entries: (string | Record<string, boolean>)[]) =>
+  entries
+    .map(e =>
+      typeof e === "string"
+        ? e
+        : Object.entries(e)
+            .filter(([_, active]) => active)
+            .map(([classname]) => classname)
+    )
+    .join(" ");
 
 const Login: React.FC = () => {
   const user = useUser();
@@ -8,12 +20,12 @@ const Login: React.FC = () => {
 
   if (user.state === "logged-in") {
     return (
-      <ul>
-        <li>Username: {user.username}</li>
-        <li>
+      <div className="login-box">
+        <div>Username: {user.username}</div>
+        <div>
           <button onClick={user.logout}>Logout</button>
-        </li>
-      </ul>
+        </div>
+      </div>
     );
   } else {
     return (
@@ -23,21 +35,19 @@ const Login: React.FC = () => {
           user.state !== "loading" && user.login(userRef.current?.value ?? "", passRef.current?.value ?? "");
         }}
       >
-        <ul
-          style={{
-            pointerEvents: user.state === "loading" ? "none" : undefined,
-            opacity: user.state === "loading" ? 0.5 : undefined,
-            cursor: user.state === "loading" ? "wait" : undefined,
-          }}
-        >
-          <li>
-            Username: <input ref={userRef} />
-          </li>
-          <li>
-            Password: <input ref={passRef} type="password" />
-          </li>
-          <button type="submit">Login</button>
-        </ul>
+        <div className={classes("login-box", { loading: user.state === "loading" })}>
+          <div>
+            Username: <input ref={userRef} disabled={user.state === "loading"} placeholder="user" />
+          </div>
+          <div>
+            Password: <input ref={passRef} disabled={user.state === "loading"} placeholder="user" type="password" />
+          </div>
+          <div>
+            <button disabled={user.state === "loading"} type="submit">
+              Login
+            </button>
+          </div>
+        </div>
       </form>
     );
   }
