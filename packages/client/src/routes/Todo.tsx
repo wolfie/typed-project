@@ -4,17 +4,29 @@ import * as t from "io-ts";
 import * as tt from "io-ts-types";
 import { ioTsUtils } from "typed-project-common";
 import { Todo as TodoType, useTodo, useTodoEditWithId } from "../services/todo";
+import useUser from "../useUser";
 
-const ReadTodoBody: React.FC<{ todo: TodoType; onEdit: () => void }> = ({ todo, onEdit }) => (
-  <>
-    <ul>
-      <li>Author: {todo.username}</li>
-      <li>Body: {todo.body}</li>
-      <li>Done: {todo.done ? "true" : "false"}</li>
-    </ul>
-    <button onClick={onEdit}>Edit</button>
-  </>
-);
+const ReadTodoBody: React.FC<{ todo: TodoType; onEdit: () => void }> = ({ todo, onEdit }) => {
+  const user = useUser();
+  return (
+    <>
+      <ul>
+        <li>Author: {todo.username}</li>
+        <li>Body: {todo.body}</li>
+        <li>Done: {todo.done ? "true" : "false"}</li>
+      </ul>
+      {
+        <button
+          disabled={user.state !== "logged-in"}
+          title={user.state !== "logged-in" ? "log in first" : undefined}
+          onClick={onEdit}
+        >
+          Edit
+        </button>
+      }
+    </>
+  );
+};
 
 const EditTodoBody: React.FC<{
   todo: TodoType;
@@ -51,6 +63,7 @@ const Todo: React.FC<{ todoId: number }> = ({ todoId: id }) => {
   const todoEditState = useTodoEditWithId(id);
   const [params, setParams] = useSearchParams();
   const editing = params.get("edit") !== null;
+  const user = useUser();
 
   React.useEffect(() => {
     if (todoEditState.state !== "done") return;
@@ -70,7 +83,7 @@ const Todo: React.FC<{ todoId: number }> = ({ todoId: id }) => {
         <div>Loading</div>
       ) : !todoState.data ? (
         <div>Not found</div>
-      ) : editing ? (
+      ) : editing && user.state === "logged-in" ? (
         <EditTodoBody
           todo={todoState.data}
           onSave={(todo: { body: string; done: boolean }) =>

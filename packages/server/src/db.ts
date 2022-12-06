@@ -6,7 +6,7 @@ import * as t from "io-ts";
 import * as fs from "fs";
 
 import logger from "./logger";
-import { ioTsUtils, Todo } from "typed-project-common";
+import { ioTsUtils, LoginResponse, Todo } from "typed-project-common";
 
 const log = logger("db");
 
@@ -83,6 +83,13 @@ class DB {
       ...entries.map(e => e[1]),
       id,
     ]);
+  };
+
+  checkIfUserExists = async (username: string, password: string) => {
+    const result = await (await this.db)
+      .get(`SELECT username FROM users WHERE username = ? AND password = ?`, username, password)
+      .then(ioTsUtils.decode(t.union([t.undefined, t.type({ username: t.string })])));
+    return result?.username;
   };
 }
 

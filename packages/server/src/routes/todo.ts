@@ -2,13 +2,12 @@ import { route, router, Route, Response, Parser } from "typera-express";
 import db from "../db";
 import logger from "../logger";
 import * as t from "io-ts";
-import { DataWrappedResponse, IotsError, Todo, TodoUpdate } from "typed-project-common";
+import { IotsError, Todo, TodoUpdate } from "typed-project-common";
 import { Middleware } from "typera-express/middleware";
 import { BadRequest } from "typera-express/response";
+import { CaughtInternalServerError, DataOk, ResponseOkData } from "./util";
 
 const log = logger("todo route");
-
-type CaughtInternalServerError = Response.InternalServerError<{ message: string }>;
 
 type BadRequestBodyError = BadRequest<{ message: string; error: any }>;
 const bodyParser = <T extends t.Any>(type: T): Middleware<{ body: t.TypeOf<T> }, BadRequestBodyError> =>
@@ -18,9 +17,6 @@ const bodyParser = <T extends t.Any>(type: T): Middleware<{ body: t.TypeOf<T> },
       error: e.map(IotsError.getReadableError),
     })
   );
-
-type DataOk<T> = Response.Ok<DataWrappedResponse<T>>;
-const ResponseOkData = <T>(data: T) => Response.ok({ data });
 
 const ResponseInternalServerError = (e: unknown) => {
   log(e);
