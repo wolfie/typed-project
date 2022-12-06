@@ -1,17 +1,7 @@
 import * as React from "react";
-import useUser from "./useUser";
+import useUser from "../useUser";
 import "./Login.css";
-
-const classes = (...entries: (string | Record<string, boolean>)[]) =>
-  entries
-    .map(e =>
-      typeof e === "string"
-        ? e
-        : Object.entries(e)
-            .filter(([_, active]) => active)
-            .map(([classname]) => classname)
-    )
-    .join(" ");
+import classes from "../classes";
 
 const Login: React.FC = () => {
   const user = useUser();

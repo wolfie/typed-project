@@ -1,0 +1,21 @@
+.icon-checkbox {
+  display: flex;
+  user-select: none;
+  color: black;
+}
+
+.icon-checkbox:hover {
+  color: #555;
+}
+
+.icon-checkbox input[type="checkbox"] {
+  display: none;
+}
+
+.icon-checkbox input[type="checkbox"]:checked ~ .unchecked {
+  display: none;
+}
+
+.icon-checkbox input[type="checkbox"]:not(:checked) ~ .checked {
+  display: none;
+}

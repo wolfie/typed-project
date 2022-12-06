@@ -2,10 +2,10 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import "./index.css";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Todos from "./routes/Todos";
-import Todo from "./routes/Todo";
+import TodosView from "./views/TodosView";
+import TodoView from "./views/TodoView";
 import { UserProvider } from "./useUser";
-import Login from "./Login";
+import Login from "./components/Login";
 
 const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
 root.render(
@@ -20,8 +20,8 @@ root.render(
           </header>
           <BrowserRouter>
             <Routes>
-              <Route path="/" element={<Todos />} />
-              <Route path="/:todoId/" element={<Todo />} />
+              <Route path="/" element={<TodosView />} />
+              <Route path="/:todoId/" element={<TodoView />} />
             </Routes>
           </BrowserRouter>
         </div>

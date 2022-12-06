@@ -3,8 +3,13 @@
 :root {
   --red: #ffa0a0;
   --grey: #eee;
+  --dark-grey: #555;
   --green: #d5ffdc;
   background: var(--green);
+}
+
+.material-symbols-outlined {
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 48;
 }
 
 body {

@@ -15,15 +15,7 @@ const ReadTodoBody: React.FC<{ todo: TodoType; onEdit: () => void }> = ({ todo, 
         <li>Body: {todo.body}</li>
         <li>Done: {todo.done ? "true" : "false"}</li>
       </ul>
-      {
-        <button
-          disabled={user.state !== "logged-in"}
-          title={user.state !== "logged-in" ? "log in first" : undefined}
-          onClick={onEdit}
-        >
-          Edit
-        </button>
-      }
+      {user.state === "logged-in" ? <button onClick={onEdit}>Edit</button> : "Log in to edit todo"}
     </>
   );
 };
@@ -58,7 +50,7 @@ const EditTodoBody: React.FC<{
   );
 };
 
-const Todo: React.FC<{ todoId: number }> = ({ todoId: id }) => {
+const TodoView: React.FC<{ todoId: number }> = ({ todoId: id }) => {
   const todoState = useTodo(id);
   const todoEditState = useTodoEditWithId(id);
   const [params, setParams] = useSearchParams();
@@ -98,4 +90,4 @@ const Todo: React.FC<{ todoId: number }> = ({ todoId: id }) => {
   );
 };
 
-export default () => <Todo {...ioTsUtils.decode(t.type({ todoId: tt.IntFromString }), useParams())} />;
+export default () => <TodoView {...ioTsUtils.decode(t.type({ todoId: tt.IntFromString }), useParams())} />;

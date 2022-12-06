@@ -1,0 +1,56 @@
+.todo {
+  border: 1px solid black;
+  border-radius: 1em;
+  padding: 0.25em 0.5em;
+  position: relative;
+  display: flex;
+  gap: 0.5em;
+  align-items: center;
+}
+
+a.todo {
+  text-decoration: none;
+  color: inherit;
+}
+
+a.todo:hover {
+  border-width: 2px;
+  padding-left: calc(0.5em - 1px);
+  padding-right: calc(0.5em - 1px);
+  padding-top: calc(0.25em - 1px);
+  padding-bottom: calc(0.25em - 1px);
+}
+
+.todo.done {
+  background-color: var(--grey);
+}
+
+.todo.done > * {
+  z-index: 1;
+  text-shadow: -1px -1px 0 white, 1px 1px 0 white, -1px 1px 0 white, 1px -1px 0 white;
+}
+
+.todo.loading {
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+.todo.done::before {
+  --height: 15px;
+  --width: 120%;
+  content: "";
+  display: block;
+  position: absolute;
+  height: var(--height);
+  width: var(--width);
+  background-color: var(--dark-grey);
+  z-index: 0;
+  top: calc(50% - var(--height) / 2);
+  left: calc(50% - var(--width) / 2);
+  pointer-events: none;
+  transform: rotate(var(--rotation));
+}
+
+.todo.done:hover::before {
+  --width: calc(120% + 2px);
+}
