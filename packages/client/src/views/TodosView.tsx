@@ -37,6 +37,7 @@ const TodosView: React.FC = () => {
           ))}
         </div>
       )}
+      {/* TODO: add new todo */}
     </section>
   );
 };
