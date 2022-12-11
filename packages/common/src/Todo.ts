@@ -11,3 +11,6 @@ export const Todo = t.type({
 
 export type TodoUpdate = t.TypeOf<typeof TodoUpdate>;
 export const TodoUpdate = t.partial({ body: t.string, done: t.boolean });
+
+export type TodoCreate = t.TypeOf<typeof TodoCreate>;
+export const TodoCreate = t.type({ authorId: t.string, body: t.string });

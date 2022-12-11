@@ -2,10 +2,10 @@ import { route, router, Route, Response, Parser } from "typera-express";
 import db from "../db";
 import logger from "../logger";
 import * as t from "io-ts";
-import { IotsError, Todo, TodoUpdate } from "typed-project-common";
+import { IotsError, Todo, TodoCreate, TodoUpdate } from "typed-project-common";
 import { Middleware } from "typera-express/middleware";
 import { BadRequest } from "typera-express/response";
-import { CaughtInternalServerError, DataOk, ResponseOkData } from "./util";
+import { CaughtInternalServerError, DataOk, ResponseOkData, ResponseOkEmpty } from "./util";
 
 const log = logger("todo route");
 
@@ -27,6 +27,13 @@ const getAllTodosRoute: Route<DataOk<Todo[]> | CaughtInternalServerError> = rout
   .get("/")
   .handler(() => db.getAllTodos().then(ResponseOkData).catch(ResponseInternalServerError));
 
+const postTodoRoute: Route<DataOk | BadRequestBodyError | CaughtInternalServerError> = route
+  .post("/")
+  .use(bodyParser(TodoCreate))
+  .handler(ctx =>
+    db.createTodo(ctx.body.authorId, ctx.body.body).then(ResponseOkEmpty).catch(ResponseInternalServerError)
+  );
+
 const getTodoRoute: Route<DataOk<Todo | undefined> | CaughtInternalServerError> = route
   .get("/:id(int)")
   .handler(ctx => db.getTodo(ctx.routeParams.id).then(ResponseOkData).catch(ResponseInternalServerError));
@@ -44,4 +51,4 @@ const patchTodoRoute: Route<DataOk<Todo | undefined> | BadRequestBodyError | Cau
     }
   });
 
-export default router(getAllTodosRoute, getTodoRoute, patchTodoRoute).handler();
+export default router(getAllTodosRoute, postTodoRoute, getTodoRoute, patchTodoRoute).handler();

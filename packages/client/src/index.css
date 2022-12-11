@@ -5,6 +5,17 @@
   --grey: #eee;
   --dark-grey: #555;
   --green: #d5ffdc;
+  --todo-radius: 1em;
+  --todo-border: 1px solid black;
+  --todo-padding: 0.25em 0.5em;
+
+  --line-height: 1;
+  --font-size: 18px;
+  --lh: calc(var(--font-size) * var(--line-height));
+
+  font-size: var(--font-size);
+  line-height: var(--line-height);
+
   background: var(--green);
 }
 
@@ -18,7 +29,6 @@ body {
     "Droid Sans", "Helvetica Neue", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  font-size: 18px;
 }
 
 body,

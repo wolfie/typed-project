@@ -1,10 +1,19 @@
-.icon-checkbox {
+.icon-checkbox .label {
   display: flex;
   user-select: none;
   color: black;
+  width: 1em;
 }
 
-.icon-checkbox:hover {
+.icon-checkbox.disabled {
+  color: #999;
+}
+
+.icon-checkbox.disabled * {
+  cursor: not-allowed;
+}
+
+.icon-checkbox:not(.disabled):hover {
   color: #555;
 }
 

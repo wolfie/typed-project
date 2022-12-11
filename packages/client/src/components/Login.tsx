@@ -11,7 +11,7 @@ const Login: React.FC = () => {
   if (user.state === "logged-in") {
     return (
       <div className="login-box">
-        <div>Username: {user.username}</div>
+        <div>Username: {user.user?.username}</div>
         <div>
           <button onClick={user.logout}>Logout</button>
         </div>

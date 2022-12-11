@@ -1,11 +1,14 @@
 import * as React from "react";
 import Todo from "../components/Todo";
+import NewTodo from "../components/NewTodo";
 import { useTodoEdit, useTodos } from "../services/todo";
 import "./TodosView.css";
+import useUser from "../useUser";
 
 const TodosView: React.FC = () => {
   const todosState = useTodos();
   const editTodoState = useTodoEdit();
+  const user = useUser();
 
   React.useEffect(() => {
     if (editTodoState.state !== "done" || todosState.state !== "done") return;
@@ -22,6 +25,11 @@ const TodosView: React.FC = () => {
     [editTodoState]
   );
 
+  const handleOnAdd = React.useCallback(() => {
+    console.log("refetch");
+    todosState.state !== "loading" && todosState.refetch();
+  }, [todosState]);
+
   if (todosState.state === "error") {
     return <div>Something weird happened</div>;
   }
@@ -31,13 +39,13 @@ const TodosView: React.FC = () => {
       {todosState.state === "loading" ? (
         "Loading..."
       ) : (
-        <div className="todos-container">
+        <>
           {todosState.data.map(todo => (
             <Todo key={todo.id} todo={todo} onChangeDone={done => handleDoneChange(todo.id, done)} />
           ))}
-        </div>
+          {user.state === "logged-in" ? <NewTodo onAdd={handleOnAdd} /> : "Log in to create new"}
+        </>
       )}
-      {/* TODO: add new todo */}
     </section>
   );
 };

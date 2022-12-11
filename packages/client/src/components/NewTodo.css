@@ -1,0 +1,43 @@
+.new-todo {
+  border: var(--todo-border);
+  border-radius: var(--todo-radius);
+  padding: var(--todo-padding);
+  background-color: var(--green);
+}
+
+.new-todo form {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.new-todo form > div {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.new-todo textarea {
+  border-radius: 4px;
+  border: 1px solid black;
+
+  height: var(--lh);
+  transition: height 0.25s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.new-todo.open textarea {
+  height: calc(var(--lh) * 3);
+  transition: height 0.25s cubic-bezier(1, 0, 0.8, 1.01);
+}
+
+.new-todo .buttons {
+  height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: height 0.5s linear, opacity 0.5s linear;
+}
+
+.new-todo.open .buttons {
+  opacity: 1;
+  height: calc(var(--lh) + 2px);
+}

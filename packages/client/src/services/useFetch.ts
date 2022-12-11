@@ -5,13 +5,14 @@ import { DataWrappedResponse, ioTsUtils } from "typed-project-common";
 type Override<T> = T | ((old: T) => T);
 type UseFetch<DATA> =
   | { state: "loading" }
-  | { state: "done"; data: DATA; override: (arg: Override<DATA>) => void }
-  | { state: "error" };
+  | { state: "done"; data: DATA; override: (arg: Override<DATA>) => void; refetch: () => void }
+  | { state: "error"; refetch: () => void };
 
 const useFetch = <T extends t.Any>(url: string, ResponseType: T): UseFetch<t.TypeOf<T>> => {
   const [data, setData] = React.useState<t.TypeOf<T>>();
   const [state, setState] = React.useState<UseFetch<any>["state"]>("loading");
   const [error, setError] = React.useState<any>();
+  const [refetchSymbol, setRefetchSymbol] = React.useState(Symbol());
 
   React.useEffect(() => {
     const controller = new AbortController();
@@ -38,24 +39,44 @@ const useFetch = <T extends t.Any>(url: string, ResponseType: T): UseFetch<t.Typ
       });
 
     return () => controller.abort();
-  }, [url, ResponseType.name]);
+  }, [url, ResponseType.name, refetchSymbol]);
+
+  const refetch = React.useCallback(() => setRefetchSymbol(Symbol()), []);
 
   const result = React.useMemo<UseFetch<t.TypeOf<T>>>(
-    () => (state === "done" ? { state, data, override: setData } : state === "error" ? { state, error } : { state }),
+    () =>
+      state === "done"
+        ? {
+            state,
+            data,
+            refetch,
+            override: setData,
+          }
+        : state === "error"
+        ? {
+            state,
+            error,
+            refetch,
+          }
+        : { state },
     [state, data]
   );
 
   return result;
 };
 
+export const NO_REQUEST = Symbol();
+
 type UseFetchLazy<ARGS extends any[], T> =
   | { state: "loading" }
-  | { exec: (...args: ARGS) => void; state: "init" }
-  | { exec: (...args: ARGS) => void; state: "error" }
-  | { exec: (...args: ARGS) => void; state: "done"; data: T };
+  | { exec: (...args: ARGS) => Promise<T>; state: "init" }
+  | { exec: (...args: ARGS) => Promise<T>; state: "error" }
+  | { exec: (...args: ARGS) => Promise<T>; state: "done"; data: T; override: (newValue: T) => void };
 export const useFetchLazy = <ARGS extends any[] = [], T extends t.Any = t.UnknownType>(
   initOptions?: Omit<RequestInit, "signal" | "body"> & { url?: string; body?: any },
-  fetchConfigs?: (...args: ARGS) => Omit<RequestInit, "signal" | "body"> & { url?: string; body?: any },
+  fetchConfigs?: (
+    ...args: ARGS
+  ) => typeof NO_REQUEST | (Omit<RequestInit, "signal" | "body"> & { url?: string; body?: any }),
   ResponseType?: T
 ) => {
   const [data, setData] = React.useState<t.TypeOf<T>>();
@@ -68,6 +89,9 @@ export const useFetchLazy = <ARGS extends any[] = [], T extends t.Any = t.Unknow
       controllerRef.current?.abort();
       const controller = (controllerRef.current = new AbortController());
       const execOptions = fetchConfigs?.(...args);
+
+      if (execOptions === NO_REQUEST) return Promise.resolve(data);
+
       const url = execOptions?.url ?? initOptions?.url;
 
       if (!url) throw new Error("No URL given");
@@ -85,26 +109,39 @@ export const useFetchLazy = <ARGS extends any[] = [], T extends t.Any = t.Unknow
       };
 
       setState("loading");
-      globalThis
-        .fetch(url, fetchOptions)
-        .then(async res => {
-          if (res.status !== 200) {
-            const errorText = await res.text();
-            console.error(errorText);
-            setState("error");
-          } else {
-            const json = await res.json();
-            if (ResponseType) setData(ioTsUtils.decode(DataWrappedResponse(ResponseType), json).data);
-            setState("done");
-          }
-        })
-        .catch(e => {
-          if (controller.signal.aborted) return;
+      const promise = new Promise<T>((resolve, reject) => {
+        globalThis
+          .fetch(url, fetchOptions)
+          .then(async res => {
+            if (res.status !== 200) {
+              const errorText = await res.text();
+              console.error(errorText);
+              setState("error");
+              reject(new Error(errorText));
+            } else {
+              const json = await res.json();
+              const data = ResponseType && ioTsUtils.decode(DataWrappedResponse(ResponseType), json).data;
+              setData(oldData => {
+                const finalData = data ?? oldData;
+                try {
+                  return finalData;
+                } finally {
+                  resolve(finalData!);
+                }
+              });
+              setState("done");
+            }
+          })
+          .catch(e => {
+            if (controller.signal.aborted) return;
 
-          console.error(e);
-          setState("error");
-          setError(e);
-        });
+            console.error(e);
+            setState("error");
+            setError(e);
+            reject(e);
+          });
+      });
+      return promise;
     },
     [JSON.stringify(initOptions)]
   );
@@ -116,9 +153,9 @@ export const useFetchLazy = <ARGS extends any[] = [], T extends t.Any = t.Unknow
         : state === "error"
         ? { state, error, exec }
         : state === "done"
-        ? { state, exec, data }
+        ? { state, exec, data, override: setData }
         : { state, exec },
-    [state, exec]
+    [state, exec, data]
   );
 };
 

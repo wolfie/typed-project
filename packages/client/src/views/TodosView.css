@@ -1,4 +1,4 @@
-section.todos .todos-container {
+section.todos {
   display: flex;
   flex-direction: column;
   gap: 0.5em;

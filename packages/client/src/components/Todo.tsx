@@ -17,9 +17,12 @@ const Todo: React.FC<{ todo: TodoType; onChangeDone: (done: boolean) => void }> 
       className={classes("todo", { done: todo.done })}
       onClick={e => e.currentTarget instanceof HTMLElement && e.currentTarget.tagName === "LABEL" && e.preventDefault()}
     >
-      {user.state === "logged-in" && (
-        <IconCheckbox defaultChecked={todo.done} onChange={e => onChangeDone(e.currentTarget.checked)} />
-      )}
+      <IconCheckbox
+        disabled={user.state !== "logged-in"}
+        disabledTitle="Log in first"
+        defaultChecked={todo.done}
+        onChange={e => onChangeDone(e.currentTarget.checked)}
+      />
       <div>{todo.body}</div>
     </Link>
   );

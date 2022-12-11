@@ -87,9 +87,13 @@ class DB {
 
   checkIfUserExists = async (username: string, password: string) => {
     const result = await (await this.db)
-      .get(`SELECT username FROM users WHERE username = ? AND password = ?`, username, password)
-      .then(ioTsUtils.decode(t.union([t.undefined, t.type({ username: t.string })])));
-    return result?.username;
+      .get(`SELECT username ,id FROM users WHERE username = ? AND password = ?`, username, password)
+      .then(ioTsUtils.decode(t.union([t.undefined, t.type({ username: t.string, id: t.string })])));
+    return result;
+  };
+
+  createTodo = async (authorId: string, body: string) => {
+    (await this.db).run(`INSERT INTO ${TODOS_TABLE} (author_id, body) VALUES (?, ?)`, [authorId, body]);
   };
 }
 

@@ -1,6 +1,6 @@
 import env from "../env";
 import * as t from "io-ts";
-import useFetch, { useFetchLazy } from "./useFetch";
+import useFetch, { NO_REQUEST, useFetchLazy } from "./useFetch";
 import { TodoUpdate } from "typed-project-common";
 
 const Possible = <T extends t.Any>(Type: T) => t.union([Type, t.undefined]);
@@ -25,3 +25,10 @@ export const useTodoEdit = () =>
 
 const Todos = t.array(Todo);
 export const useTodos = () => useFetch(env.REACT_APP_TODO_SERVICE_URL, Todos);
+
+export const useTodoNew = (authorId: string | undefined) =>
+  useFetchLazy(
+    { method: "POST" },
+    (body: string) => (authorId ? { url: `${env.REACT_APP_TODO_SERVICE_URL}`, body: { authorId, body } } : NO_REQUEST),
+    t.void
+  );
