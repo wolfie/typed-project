@@ -5,6 +5,7 @@ import * as tt from "io-ts-types";
 import { ioTsUtils } from "typed-project-common";
 import { Todo as TodoType, useTodo, useTodoEditWithId } from "../services/todo";
 import useUser from "../useUser";
+import getFormValues from "../components/getFormValues";
 
 const ReadTodoBody: React.FC<{ todo: TodoType; onEdit: () => void }> = ({ todo, onEdit }) => {
   const user = useUser();
@@ -25,28 +26,28 @@ const EditTodoBody: React.FC<{
   onSave: (todo: { body: string; done: boolean }) => void;
   onCancel: () => void;
 }> = ({ todo, onSave, onCancel }) => {
-  const bodyRef = React.useRef<HTMLInputElement>(null);
-  const doneRef = React.useRef<HTMLInputElement>(null);
+  const handleSubmit = React.useCallback<React.FormEventHandler>(
+    e => {
+      e.preventDefault();
+      onSave(getFormValues(e, { body: t.string, done: t.boolean }));
+    },
+    [onSave]
+  );
+
   return (
-    <>
+    <form onSubmit={handleSubmit}>
       <ul>
         <li>Author: {todo.username}</li>
         <li>
-          Body: <input ref={bodyRef} type="text" defaultValue={todo.body} />
+          Body: <input type="text" name="body" defaultValue={todo.body} />
         </li>
         <li>
-          Done: <input ref={doneRef} type="checkbox" defaultChecked={todo.done} />
+          Done: <input type="checkbox" name="done" defaultChecked={todo.done} />
         </li>
       </ul>
-      <button
-        onClick={() =>
-          bodyRef.current && doneRef.current && onSave({ body: bodyRef.current.value, done: doneRef.current.checked })
-        }
-      >
-        Save
-      </button>
+      <button type="submit">Save</button>
       <button onClick={onCancel}>Cancel</button>
-    </>
+    </form>
   );
 };
 
