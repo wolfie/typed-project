@@ -3,3 +3,13 @@ section.todos {
   flex-direction: column;
   gap: 0.5em;
 }
+
+section.todos .delete {
+  display: flex;
+  justify-content: flex-end;
+}
+
+section.todos .delete button {
+  border-radius: 100%;
+  border: 1px solid black;
+}

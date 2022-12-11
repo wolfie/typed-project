@@ -95,6 +95,10 @@ class DB {
   createTodo = async (authorId: string, body: string) => {
     (await this.db).run(`INSERT INTO ${TODOS_TABLE} (author_id, body) VALUES (?, ?)`, [authorId, body]);
   };
+
+  deleteDoneTodos = async () => {
+    (await this.db).exec(`DELETE FROM ${TODOS_TABLE} WHERE done = 1`);
+  };
 }
 
 const db = new DB();

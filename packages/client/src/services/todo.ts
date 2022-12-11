@@ -32,3 +32,6 @@ export const useTodoNew = (authorId: string | undefined) =>
     (body: string) => (authorId ? { url: `${env.REACT_APP_TODO_SERVICE_URL}`, body: { authorId, body } } : NO_REQUEST),
     t.void
   );
+
+export const useDeleteDone = () =>
+  useFetchLazy({ method: "DELETE", url: `${env.REACT_APP_TODO_SERVICE_URL}?done=true` });

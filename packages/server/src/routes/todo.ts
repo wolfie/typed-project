@@ -1,22 +1,19 @@
-import { route, router, Route, Response, Parser } from "typera-express";
+import { route, router, Route, Response } from "typera-express";
 import db from "../db";
 import logger from "../logger";
 import * as t from "io-ts";
-import { IotsError, Todo, TodoCreate, TodoUpdate } from "typed-project-common";
-import { Middleware } from "typera-express/middleware";
-import { BadRequest } from "typera-express/response";
-import { CaughtInternalServerError, DataOk, ResponseOkData, ResponseOkEmpty } from "./util";
+import { Todo, TodoCreate, TodoUpdate } from "typed-project-common";
+import {
+  BadRequestBodyError,
+  bodyParser,
+  CaughtInternalServerError,
+  DataOk,
+  queryParser,
+  ResponseOkData,
+  ResponseOkEmpty,
+} from "./util";
 
 const log = logger("todo route");
-
-type BadRequestBodyError = BadRequest<{ message: string; error: any }>;
-const bodyParser = <T extends t.Any>(type: T): Middleware<{ body: t.TypeOf<T> }, BadRequestBodyError> =>
-  Parser.bodyP(type, e =>
-    Response.badRequest({
-      message: "Bad request",
-      error: e.map(IotsError.getReadableError),
-    })
-  );
 
 const ResponseInternalServerError = (e: unknown) => {
   log(e);
@@ -33,6 +30,11 @@ const postTodoRoute: Route<DataOk | BadRequestBodyError | CaughtInternalServerEr
   .handler(ctx =>
     db.createTodo(ctx.body.authorId, ctx.body.body).then(ResponseOkEmpty).catch(ResponseInternalServerError)
   );
+
+const deleteTodoRoute: Route<DataOk | BadRequestBodyError | CaughtInternalServerError> = route
+  .delete("/")
+  .use(queryParser({ done: t.literal("true") }))
+  .handler(() => db.deleteDoneTodos().then(ResponseOkEmpty).catch(ResponseInternalServerError));
 
 const getTodoRoute: Route<DataOk<Todo | undefined> | CaughtInternalServerError> = route
   .get("/:id(int)")
@@ -51,4 +53,4 @@ const patchTodoRoute: Route<DataOk<Todo | undefined> | BadRequestBodyError | Cau
     }
   });
 
-export default router(getAllTodosRoute, postTodoRoute, getTodoRoute, patchTodoRoute).handler();
+export default router(getAllTodosRoute, postTodoRoute, deleteTodoRoute, getTodoRoute, patchTodoRoute).handler();

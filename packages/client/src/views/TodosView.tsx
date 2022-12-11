@@ -1,13 +1,15 @@
 import * as React from "react";
 import Todo from "../components/Todo";
 import NewTodo from "../components/NewTodo";
-import { useTodoEdit, useTodos } from "../services/todo";
+import { useDeleteDone, useTodoEdit, useTodos } from "../services/todo";
 import "./TodosView.css";
 import useUser from "../useUser";
+import { Delete } from "../components/icons";
 
 const TodosView: React.FC = () => {
   const todosState = useTodos();
   const editTodoState = useTodoEdit();
+  const deleteDoneState = useDeleteDone();
   const user = useUser();
 
   React.useEffect(() => {
@@ -40,6 +42,15 @@ const TodosView: React.FC = () => {
         "Loading..."
       ) : (
         <>
+          <div className="delete">
+            <button
+              title="Delete all done"
+              disabled={todosState.data.every(todo => !todo.done)}
+              onClick={() => deleteDoneState.state !== "loading" && deleteDoneState.exec().then(todosState.refetch)}
+            >
+              <Delete />
+            </button>
+          </div>
           {todosState.data.map(todo => (
             <Todo key={todo.id} todo={todo} onChangeDone={done => handleDoneChange(todo.id, done)} />
           ))}
