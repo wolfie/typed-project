@@ -46,19 +46,10 @@ const useFetch = <T extends t.Any>(url: string, ResponseType: T): UseFetch<t.Typ
   const result = React.useMemo<UseFetch<t.TypeOf<T>>>(
     () =>
       state === "done"
-        ? {
-            state,
-            data,
-            refetch,
-            override: setData,
-          }
+        ? ({ state, data, refetch, override: setData } satisfies UseFetch<t.TypeOf<T>>)
         : state === "error"
-        ? {
-            state,
-            error,
-            refetch,
-          }
-        : { state },
+        ? ({ state, refetch } satisfies UseFetch<t.TypeOf<T>>)
+        : ({ state } satisfies UseFetch<t.TypeOf<T>>),
     [state, data]
   );
 
@@ -149,12 +140,12 @@ export const useFetchLazy = <ARGS extends any[] = [], T extends t.Any = t.Unknow
   return React.useMemo<UseFetchLazy<ARGS, t.TypeOf<T>>>(
     () =>
       state === "loading"
-        ? { state }
+        ? ({ state } satisfies UseFetchLazy<ARGS, t.TypeOf<T>>)
         : state === "error"
-        ? { state, error, exec }
+        ? ({ state, exec } satisfies UseFetchLazy<ARGS, t.TypeOf<T>>)
         : state === "done"
-        ? { state, exec, data, override: setData }
-        : { state, exec },
+        ? ({ state, exec, data, override: setData } satisfies UseFetchLazy<ARGS, t.TypeOf<T>>)
+        : ({ state, exec } satisfies UseFetchLazy<ARGS, t.TypeOf<T>>),
     [state, exec, data]
   );
 };

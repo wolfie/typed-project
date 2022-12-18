@@ -1,6 +1,6 @@
 import type * as t from "io-ts";
 
-class IoTsError extends Error {
+export class IoTsError extends Error {
   name = "IoTsError";
   constructor(public readonly errors: t.Errors) {
     super(JSON.stringify(errors.map(getReadableError)));
