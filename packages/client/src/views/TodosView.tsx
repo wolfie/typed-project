@@ -44,7 +44,7 @@ const TodosView: React.FC = () => {
         <>
           <div className="delete">
             <button
-              title="Delete all done"
+              title={user.state === "logged-in" ? "Delete all done" : "Log in first"}
               disabled={todosState.data.every(todo => !todo.done)}
               onClick={() => deleteDoneState.state !== "loading" && deleteDoneState.exec().then(todosState.refetch)}
             >
