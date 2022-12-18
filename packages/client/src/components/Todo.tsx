@@ -19,6 +19,7 @@ const Todo: React.FC<{
   const rotation = React.useMemo(() => Math.random() * 4 - 2, [todo.done]);
   const user = useUser();
   const formRef = React.useRef<HTMLFormElement>(null);
+  const inputRef = React.useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
     if (!open) setEditing(false);
@@ -32,6 +33,9 @@ const Todo: React.FC<{
     },
     [onUpdate]
   );
+
+  const fakeSubmitEvent = () =>
+    formRef.current?.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
 
   return (
     <Link
@@ -56,10 +60,16 @@ const Todo: React.FC<{
       <form onSubmit={handleSubmit} ref={formRef}>
         <div className="body">
           <input
+            ref={inputRef}
             name="body"
             onClick={e => open && editing && e.preventDefault()}
             defaultValue={todo.body}
             readOnly={!open || !editing}
+            onKeyDown={e => {
+              if (e.key !== "Enter") return;
+              e.preventDefault();
+              fakeSubmitEvent();
+            }}
           />
           {open && (
             <>
@@ -70,7 +80,7 @@ const Todo: React.FC<{
                     type="submit"
                     onClick={e => {
                       e.preventDefault();
-                      formRef.current?.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
+                      fakeSubmitEvent();
                     }}
                   >
                     Submit
@@ -89,7 +99,10 @@ const Todo: React.FC<{
                 <IconButton
                   disabled={user.state !== "logged-in"}
                   title={user.state !== "logged-in" ? "log in first" : undefined}
-                  onClick={() => setEditing(true)}
+                  onClick={() => {
+                    setEditing(true);
+                    inputRef.current?.focus();
+                  }}
                 >
                   <Edit />
                 </IconButton>
