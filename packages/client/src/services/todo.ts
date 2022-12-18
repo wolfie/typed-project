@@ -9,13 +9,6 @@ const Todo = t.type({ id: t.number, username: t.string, body: t.string, done: t.
 export type Todo = t.TypeOf<typeof Todo>;
 export const useTodo = (id: number) => useFetch(`${env.REACT_APP_TODO_SERVICE_URL}/${id}`, Possible(Todo));
 
-export const useTodoEditWithId = (id: number) =>
-  useFetchLazy(
-    { method: "PATCH", url: `${env.REACT_APP_TODO_SERVICE_URL}/${id}` },
-    (body: TodoUpdate) => ({ body }),
-    Possible(Todo)
-  );
-
 export const useTodoEdit = () =>
   useFetchLazy(
     { method: "PATCH" },

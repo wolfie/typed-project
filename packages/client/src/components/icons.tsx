@@ -19,3 +19,7 @@ export const Circle: React.FC<
 export const Delete: React.FC<
   React.DetailedHTMLProps<React.HTMLAttributes<HTMLSpanElement>, HTMLSpanElement>
 > = props => <BaseIcon icon="delete" {...props} />;
+
+export const Edit: React.FC<
+  React.DetailedHTMLProps<React.HTMLAttributes<HTMLSpanElement>, HTMLSpanElement>
+> = props => <BaseIcon icon="edit" {...props} />;

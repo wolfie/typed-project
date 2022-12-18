@@ -1,12 +1,17 @@
 import * as React from "react";
-import Todo from "../components/Todo";
-import NewTodo from "../components/NewTodo";
-import { useDeleteDone, useTodoEdit, useTodos } from "../services/todo";
+import Todo from "./components/Todo";
+import NewTodo from "./components/NewTodo";
+import { useDeleteDone, useTodoEdit, useTodos } from "./services/todo";
 import "./TodosView.css";
-import useUser from "../useUser";
-import { Delete } from "../components/icons";
+import useUser from "./useUser";
+import { Delete } from "./components/icons";
+import { ioTsUtils } from "typed-project-common";
+import { useParams } from "react-router-dom";
+import * as t from "io-ts";
+import * as tt from "io-ts-types";
+import IconButton from "./components/IconButton";
 
-const TodosView: React.FC = () => {
+const TodosView: React.FC<{ todoId?: number }> = ({ todoId }) => {
   const todosState = useTodos();
   const editTodoState = useTodoEdit();
   const deleteDoneState = useDeleteDone();
@@ -19,10 +24,10 @@ const TodosView: React.FC = () => {
     todosState.override(oldTodos => oldTodos.map(t => (t.id === newTodo?.id ? newTodo : t)));
   }, [editTodoState.state]);
 
-  const handleDoneChange = React.useCallback(
-    (id: number, done: boolean) => {
+  const handleChangesFor = React.useCallback(
+    (todoId: number) => async (updates: { body?: string; done?: boolean }) => {
       if (editTodoState.state === "loading") return;
-      editTodoState.exec(id, { done });
+      await editTodoState.exec(todoId, updates);
     },
     [editTodoState]
   );
@@ -43,16 +48,20 @@ const TodosView: React.FC = () => {
       ) : (
         <>
           <div className="delete">
-            <button
+            <IconButton
               title={user.state === "logged-in" ? "Delete all done" : "Log in first"}
-              disabled={todosState.data.every(todo => !todo.done)}
-              onClick={() => deleteDoneState.state !== "loading" && deleteDoneState.exec().then(todosState.refetch)}
+              disabled={user.state !== "logged-in"}
+              onClick={() =>
+                todosState.data.some(todo => todo.done) &&
+                deleteDoneState.state !== "loading" &&
+                deleteDoneState.exec().then(todosState.refetch)
+              }
             >
               <Delete />
-            </button>
+            </IconButton>
           </div>
           {todosState.data.map(todo => (
-            <Todo key={todo.id} todo={todo} onChangeDone={done => handleDoneChange(todo.id, done)} />
+            <Todo key={todo.id} todo={todo} open={todo.id === todoId} onUpdate={handleChangesFor(todo.id)} />
           ))}
           {user.state === "logged-in" ? <NewTodo onAdd={handleOnAdd} /> : "Log in to create new"}
         </>
@@ -61,4 +70,4 @@ const TodosView: React.FC = () => {
   );
 };
 
-export default TodosView;
+export default () => <TodosView {...ioTsUtils.decode(t.partial({ todoId: tt.IntFromString }), useParams())} />;

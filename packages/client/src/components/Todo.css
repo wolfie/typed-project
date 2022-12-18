@@ -5,7 +5,7 @@
   position: relative;
   display: flex;
   gap: 0.5em;
-  align-items: center;
+  align-items: flex-start;
 }
 
 a.todo {
@@ -45,12 +45,46 @@ a.todo:hover {
   width: var(--width);
   background-color: var(--dark-grey);
   z-index: 0;
-  top: calc(50% - var(--height) / 2);
+  top: 12px;
   left: calc(50% - var(--width) / 2);
   pointer-events: none;
   transform: rotate(var(--rotation));
 }
 
 .todo.done:hover::before {
+  top: 11px;
   --width: calc(120% + 2px);
+}
+
+.todo .body {
+  padding: 4px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  padding-right: 1em;
+}
+
+.todo .button-bar {
+  display: flex;
+  gap: 8px;
+}
+
+.todo input:read-only,
+.todo input:read-only:focus {
+  margin: 0 0 3px 0;
+  padding: 0;
+  border: 0;
+  outline: none;
+  cursor: inherit;
+  background-color: rgba(0, 0, 0, 0);
+}
+
+.todo input:not(:read-only) {
+  margin: -3px 0 0 -4px;
+}
+
+.todo input {
+  font-size: 18px;
+  width: 100%;
 }

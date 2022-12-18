@@ -1,0 +1,19 @@
+.icon-button {
+  --size: 30px;
+
+  border-radius: 100%;
+  border: 1px solid black;
+  height: var(--size);
+  width: var(--size);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.icon-button:disabled {
+  border: 1px solid rgba(0, 0, 0, 0.5);
+}
+
+.icon-button > span {
+  font-size: 18px;
+}
