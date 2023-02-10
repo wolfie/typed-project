@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vite + Preact + TS</title>
+  </head>
+  <body>
+    <div class="body">
+      <h1 id="a-love-letter-to-tsserver">A Love Letter to <code>tsserver</code></h1>
+<div id="TableOfContents"></div>
+
+<p>Since I&#39;ve been working with TypeScript in recent years, I&#39;ve grown to love its type system quite a lot. I love how <code>tsserver</code> tells me off whenever I call functions with wrong parameters, or when I try to read data from non-existent object parameters, or when I try to return complete nonsensical data from functions. It just sits there, in the background, snickering at me and my mistakes. &quot;Well, smarty-pants, since you&#39;re so smart with your smarts and knowledge of what is correct programming and what is not, why don&#39;t you just fix my code for me?&quot; I said. And this gave me an idea: Why wouldn&#39;t I let <code>tsserver</code> fix my code for me?</p>
+<p>Well, some of the code at least. In certain situations.</p>
+<p>To paint a bit of a background picture, the projects that I&#39;ve been exposed to in the recent years have all been quite similar:</p>
+<ul>
+<li>A React front-end running in the browser, that communicates with…</li>
+<li>A BFF (backend-for-frontend), which, in turn, collects data from…</li>
+<li>Various backend services and/or databases.</li>
+</ul>
+<p>Each time we communicate across these gaps, data gets collected, transformed, transferred, read and finally distributed back. Even though compilation-time type safety would be rock-solid, there&#39;s very little we get for free when data is sent to and especially received from over the network.</p>
+<p>My experience has taught me that the less we use overly broad data types, and the less we assume that an external service gives the data in a certain format, the less time I need to spend fixing bugs and researching unexpected system behavior.</p>
+<h2 id="components-with-generics">Components with Generics</h2>
+<div id="GenericsSelect"></div>
+
+    </div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

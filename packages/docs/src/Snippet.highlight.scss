@@ -1,0 +1,82 @@
+$base-code-color: white;
+
+code {
+  white-space: pre;
+  color: rgba($base-code-color, 0.87);
+
+  > .hljs-keyword {
+    color: white;
+    font-weight: bold;
+  }
+
+  > .hljs-title.class_,
+  > .hljs-string {
+    color: #00f03c;
+  }
+
+  > .hljs-variable {
+    color: #ffd739;
+  }
+
+  > .hljs-comment {
+    color: rgba($base-code-color, 0.5);
+  }
+
+  > .language-xml {
+    > .hljs-tag {
+      color: #7f99c1;
+    }
+
+    > .hljs-name,
+    > .hljs-attr {
+      color: #c0d6ff;
+    }
+  }
+}
+
+.snippet-code {
+  background-color: black;
+  border-radius: 1em;
+  border: 1px solid grey;
+  margin: 0;
+  overflow: auto;
+  font-size: $code-font-size;
+  line-height: calc($code-font-size * 1.5);
+  padding: calc($code-font-size * 0.5);
+
+  code {
+    .pl-k {
+      color: $base-code-color;
+      font-weight: bold;
+    }
+
+    .pl-en {
+      color: #ce7400;
+    }
+
+    .pl-s {
+      color: #31df00;
+    }
+
+    .pl-smi {
+      color: #84e8ff;
+    }
+
+    .pl-c {
+      color: rgba($base-code-color, 0.5);
+    }
+
+    .pl-v {
+      color: #ffef00;
+    }
+
+    .pl-e {
+      color: #ffef00;
+    }
+
+    .pl-ent,
+    .pl-c1 {
+      color: #18a9ca;
+    }
+  }
+}
